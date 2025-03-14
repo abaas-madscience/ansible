@@ -1,0 +1,64 @@
+---
+- name: Prepare SSH environment for VM connections
+  import_tasks: pre_vm_tasks.yml
+
+- name: Ensure cloud-init directory exists
+  file:
+    path: "{{ cloud_init_dir }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Generate cloud-init config files
+  template:
+    src: "{{ item }}"
+    dest: "{{ cloud_init_dir }}/{{ node.name }}-{{ item | basename | replace('.j2', '') }}"
+  loop:
+    - "user-data.j2"
+    - "meta-data.j2"
+  vars:
+    vm_name: "{{ node.name }}"
+  become: true
+
+- name: Create VM disk from base image
+  ansible.builtin.command: "qemu-img create -f qcow2 -F qcow2 -b {{ cloud_image_path }} /{{ cloud_init_dir }}/{{ node.name }}.qcow2"
+  args:
+    creates: "{{ cloud_init_dir }}/{{ node.name }}.qcow2"
+  become: true
+
+- name: Create cloud-init ISO
+  ansible.builtin.shell: |
+    cd {{ cloud_init_dir }}
+    cp {{ node.name }}-user-data user-data
+    cp {{ node.name }}-meta-data meta-data
+    genisoimage -output {{ node.name }}-cloud-init.iso -volid cidata -joliet -rock user-data meta-data
+    rm user-data meta-data
+  become: true
+
+- name: Define and start VM
+  block:
+    - name: Define VM from template
+      community.libvirt.virt:
+        command: define
+        xml: "{{ lookup('template', 'vm_template.xml.j2') }}"
+      vars:
+        vm_name: "{{ node.name }}"
+        memory: "{{ virtual_memory }}"
+        cpu: "{{ virtual_cpu }}"
+        disk_path: "{{ cloud_init_dir }}/{{ node.name }}.qcow2"
+        cloud_init_iso: "{{ cloud_init_dir }}/{{ node.name }}-cloud-init.iso"
+        mac: "{{ node.mac }}"
+        network: "{{ virtual_network }}"
+
+    - name: Start VM
+      community.libvirt.virt:
+        name: "{{ node.name }}"
+        state: running
+  rescue:
+    - name: Cleanup on failure
+      ansible.builtin.shell: |
+        virsh undefine {{ node.name }}
+        rm -f {{ cloud_init_dir }}/{{ node.name }}.qcow2
+        rm -f {{ cloud_init_dir }}/{{ node.name }}-cloud-init.iso
+      become: true
+      ignore_errors: true

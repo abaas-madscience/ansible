@@ -1,0 +1,28 @@
+<domain type='kvm'>
+  <name>{{ vm_name }}</name>
+  <memory unit='MiB'>{{ memory }}</memory>
+  <vcpu>{{ cpu }}</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <devices>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='{{ disk_path }}'/>
+      <target dev='vda' bus='virtio'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='{{ cloud_init_iso }}'/>
+      <target dev='hdb' bus='sata'/>
+      <readonly/>
+    </disk>
+    <interface type='network'>
+      <mac address='{{ mac }}'/>
+      <source network='{{ virtual_network }}'/>
+      <model type='virtio'/>
+    </interface>
+    <graphics type='vnc' port='-1' listen='0.0.0.0'/>
+  </devices>
+</domain>

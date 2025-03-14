@@ -1,0 +1,30 @@
+- name: Destroy VMs
+  community.libvirt.virt:
+    name: "{{ item.name }}"
+    state: destroyed 
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: item
+  tags:
+    - vm_teardown
+
+- name: Undefine VMs
+  command: "virsh undefine {{ item.name }} --remove-all-storage"
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: item
+  become: true
+  tags:
+    - vm_teardown
+
+
+- name: Remove old disk images
+  file:
+    path: "/{{ cloud_init_dir }}/{{ item.name }}.qcow2"
+    state: absent
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: item
+  become: true
+  tags:
+    - vm_teardown

@@ -1,0 +1,10 @@
+cloud_image_url: "https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img"
+cloud_init_iso: "/var/lib/libvirt/images/{{ vm_name }}-cloud-init.iso"
+cloud_image_path: "/var/lib/libvirt/images/ubuntu-cloud.img"
+cloud_init_dir: "/var/lib/libvirt/images"
+ssh_public_key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_ed25519.pub') }}"
+disk_path: "/var/lib/libvirt/images/{{ node.name }}.qcow2"
+virtual_network: k3vnet
+virtual_memory: 4096
+virtual_cpu: 8
+ansible_user: ansible

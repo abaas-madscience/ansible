@@ -1,0 +1,34 @@
+---
+- name: Remove nodes from known_hosts
+  lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.ssh/known_hosts"
+    regexp: "^{{ lab_node.static_ip }}"
+    state: absent
+  delegate_to: localhost
+  become: false
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: lab_node
+
+- name: Ensure SSH configuration directory exists
+  file:
+    path: "{{ lookup('env', 'HOME') }}/.ssh"
+    state: directory
+    mode: '0700'
+  delegate_to: localhost
+  become: false
+
+- name: Configure SSH to automatically accept host keys for the nodes
+  blockinfile:
+    path: "{{ lookup('env', 'HOME') }}/.ssh/config"
+    create: true
+    mode: '0600'
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR LAB NODES"
+    block: |
+      {% for lab_node in nodes %}
+      Host {{ lab_node.name }}
+        StrictHostKeyChecking no
+        UserKnownHostsFile /dev/null
+      {% endfor %}
+  delegate_to: localhost
+  become: false

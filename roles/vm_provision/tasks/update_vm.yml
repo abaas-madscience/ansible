@@ -1,0 +1,86 @@
+- name: Update OS and reboot for {{ node.name }}
+  block:
+    - name: Configure DNS resolvers
+      copy:
+        content: |
+          nameserver 1.1.1.1
+          nameserver 8.8.8.8
+        dest: /etc/resolv.conf
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+      delegate_to: "{{ node.name }}"
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_user: ansible
+        ansible_host: "{{ node.static_ip }}"
+    
+    - name: Make DNS configuration persistent
+      copy:
+        content: |
+          [Resolve]
+          DNS=1.1.1.1 8.8.8.8
+          FallbackDNS=9.9.9.9
+          #Domains=
+          #LLMNR=no
+          #MulticastDNS=no
+          #DNSSEC=no
+          #DNSOverTLS=no
+          #Cache=no
+          #DNSStubListener=yes
+          #ReadEtcHosts=yes
+        dest: /etc/systemd/resolved.conf
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+      delegate_to: "{{ node.name }}"
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_user: ansible
+        ansible_host: "{{ node.static_ip }}"
+    
+    - name: Restart systemd-resolved
+      systemd:
+        name: systemd-resolved
+        state: restarted
+        enabled: yes
+      become: true
+      delegate_to: "{{ node.name }}"
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_user: ansible
+        ansible_host: "{{ node.static_ip }}"
+    
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      become: true
+      delegate_to: "{{ node.name }}"
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_user: ansible
+        ansible_host: "{{ node.static_ip }}"
+    
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      become: true
+      delegate_to: "{{ node.name }}"
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_user: ansible
+        ansible_host: "{{ node.static_ip }}"
+    
+    - name: Reboot VM
+      reboot:
+        reboot_timeout: 20
+      become: true
+      delegate_to: "{{ node.name }}"
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+        ansible_user: ansible
+        ansible_host: "{{ node.static_ip }}"

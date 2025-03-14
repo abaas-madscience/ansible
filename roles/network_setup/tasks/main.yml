@@ -1,0 +1,19 @@
+- name: Check if VM network exists
+  shell: "virsh net-list --name | grep -w {{ virtual_network }} || true"
+  register: vm_network
+  changed_when: false
+  failed_when: false 
+
+- name: Define network if missing
+  command: "virsh net-define /etc/libvirt/qemu/networks/{{ virtual_network }}.xml"
+  when: vm_network.stdout == ""
+  become: true
+
+- name: Start the network
+  command: "virsh net-start {{ virtual_network }}"
+  when: "vm_network_active.stdout is defined and vm_network_active.stdout | trim == ''"
+  become: true
+
+- name: Set network to auto-start
+  command: "virsh net-autostart {{ virtual_network }}"
+  become: true

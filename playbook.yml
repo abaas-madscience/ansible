@@ -1,0 +1,25 @@
+- name: Lab Deployment Playbook
+  hosts: localhost
+  gather_facts: false
+
+  vars_files:
+    - vars/main.yml
+
+  pre_tasks:
+    - name: Gather facts to get current user
+      setup:
+      tags:
+        - always
+
+    - name: Check if user is in the libvirt group
+      shell: "id -nG {{ ansible_user_id }} | grep -w libvirt || true"
+      register: libvirt_check
+      changed_when: false
+      failed_when: libvirt_check.rc != 0
+      tags:
+        - always
+
+  roles:
+    - network_setup
+    - vm_provision
+    - { role: vm_teardown, tags: ['never', 'vm_teardown'] }

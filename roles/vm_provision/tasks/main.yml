@@ -1,0 +1,36 @@
+- name: Ensure cloud-init directory exists
+  file:
+    path: "{{ cloud_init_dir }}"
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Check if Ubuntu Cloud Image exists
+  stat:
+    path: "{{ cloud_image_path }}"
+  register: cloud_image
+
+- name: Download Ubuntu Cloud Image if missing
+  get_url:
+    url: "{{ cloud_image_url }}"
+    dest: "{{ cloud_image_path }}"
+    mode: '0644'
+  when: not cloud_image.stat.exists
+  become: true
+
+- name: Provision VMs
+  include_tasks: provision_vm.yml
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: node
+
+- name: Wait for VMs to be fully provisioned
+  pause:
+    seconds: 20
+
+- name: Update and reboot VMs
+  include_tasks: update_vm.yml
+  loop: "{{ nodes }}"
+  loop_control:
+    loop_var: node
+

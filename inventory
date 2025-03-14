@@ -1,0 +1,19 @@
+all:
+  vars:
+    nodes:
+      - name: node1
+        mac: "52:54:00:12:34:11"
+        static_ip: 10.20.20.101
+      - name: node2
+        mac: "52:54:00:65:43:12"
+        static_ip: 10.20.20.102
+      - name: node3
+        mac: "52:54:00:65:43:13"
+        static_ip: 10.20.20.103
+      - name: node4
+        mac: "52:54:00:65:43:14"
+        static_ip: 10.20.20.104
+
+  hosts:
+    localhost:
+      ansible_connection: local

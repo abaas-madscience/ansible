@@ -1,0 +1,5 @@
+---
+roles:
+  - name: community.libvirt
+    src: community.libvirt
+    version: 1.0.0
