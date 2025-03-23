@@ -65,7 +65,7 @@ Don't worry if something goes wrong! The playbook includes error handling to cle
 
 Looking for a more streamlined and powerful way to deploy VMs and clusters? Check out these awesome projects:
 
-- **Terraform-Ansible Lab**: [terraform-ansible-lab](https://github.com/abaas-madscience/terraform-ansible-lab) - Use Terraform to create VMs and then deploy a cluster using Ansible.
+- **Terraform Libvirt K3s Cluster**: [terraform-ansible-lab](https://github.com/abaas-madscience/terraform-ansible-lab) - Use Terraform to create VMs and then deploy a cluster using Ansible.
 - **Ansible K3 Rancher**: [ansible-k3-rancher](https://github.com/abaas-madscience/ansible-k3-rancher) - Deploy a Kubernetes cluster with Rancher using Ansible.
 
 ## License
